@@ -10,12 +10,12 @@ import models.domain.Emp
 import play.api.data.Form
 import play.api.data.Forms._
 import java.util.UUID
-import security.Authenticator
+import security.SecureAction
 import security.UserRequest
 
 @Singleton
 class HomeController @Inject()(
-  authenticator: Authenticator,
+  secureAction: SecureAction,
   val empRepo: EmpRepo,
   val cc: ControllerComponents
 )(implicit val ec: ExecutionContext) extends AbstractController(cc) {
@@ -47,18 +47,35 @@ class HomeController @Inject()(
     empRepo.getAllEmployees().map { employees => Ok(Json.toJson(employees))}
   }
 
-  def addEmployee() = Action.async { implicit request: Request[AnyContent] =>
-    empForm.bindFromRequest().fold(
-      errors => {
-        Future.successful(BadRequest)
-      },
-      employee => {
-        empRepo.addEmployee(employee.copy(id = UUID.randomUUID())).map { _ => Ok("Employee added!")}
-      }
-    )
+  // def addEmployee() = authenticator.async { implicit request: Request[AnyContent] =>
+  //   empForm.bindFromRequest().fold(
+  //     errors => {
+  //       Future.successful(BadRequest)
+  //     },
+  //     employee => {
+  //       empRepo.addEmployee(employee.copy(id = UUID.randomUUID())).map { _ => Ok("Employee added!")}
+  //     }
+  //   )
+  // }
+
+  def addEmployee() = secureAction.async { implicit request: Request[AnyContent] =>
+    request.session.get("username").map { username =>
+      empForm.bindFromRequest().fold(
+        errors => {
+          Future.successful(BadRequest)
+        },
+        employee => {
+          empRepo.addEmployee(employee.copy(id = UUID.randomUUID())).map { _ =>
+            Ok("Employee added!")
+          }
+        }
+      )
+    }.getOrElse {
+      Future.successful(Unauthorized("User not authenticated"))
+    }
   }
 
-  def login() = authenticator.async { implicit request: Request[AnyContent] =>
+  def login() = Action.async { implicit request: Request[AnyContent] =>
     loginForm.bindFromRequest().fold(
       error => {
         Future.successful(Unauthorized)
@@ -75,7 +92,7 @@ class HomeController @Inject()(
     )
   }
 
-  def logout() = authenticator { implicit request =>
-    Ok("Logged out!").withNewSession
+  def logout() = secureAction.async { implicit request =>
+    Future.successful(Ok("Logged out!").withNewSession)
   }
 }

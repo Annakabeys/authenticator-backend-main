@@ -26,4 +26,5 @@ object Emp {
       "role" -> emp.role
     )
   }
+  def unapply(emp: Emp): Option[(UUID, String, Option[String], String, String, String, String)] = Some((emp.id, emp.firstName, emp.middleName, emp.lastName, emp.username, emp.password, emp.role))
 }
