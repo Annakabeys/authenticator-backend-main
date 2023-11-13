@@ -1,6 +1,20 @@
-GET    /              controllers.HomeController.index()
-GET    /employees     controllers.HomeController.getAllEmployees()
+#HomeController
+GET     /                 controllers.HomeController.index()
+GET     /users            controllers.HomeController.getAllUsers()
 
-POST   /employee-add        controllers.HomeController.addEmployee()
-POST   /employee-login      controllers.HomeController.login()
-POST   /employee-logout      controllers.HomeController.logout()
+POST    /user-add         controllers.HomeController.addUser()
+POST    /user-login       controllers.HomeController.login()
+POST    /user-logout      controllers.HomeController.logout()
+
+
+
+#SecureActionController
+GET     /session          controllers.SecureActionController.checkAuth()
+
+
+
+#DirectChatController
+POST    /direct-chat-add  controllers.DirectChatController.addDirectChat()
+
+#POST    /direct-message-add/:directChatId  controllers.DirectMessagesController.addDirectChatMessage(directChatId: String)
+
